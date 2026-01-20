@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>秋天的第一件礼物</title>
+<style>
+html,body{height:100%;margin:0;overflow:hidden;font-family:"华文楷体",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;transition:background 1.5s ease}
+
+.stage{position:relative;width:100%;height:100%}
+.msg{position:absolute;left:50%;top:50%;padding:10px 16px;border-radius:16px;color:#fff;font-weight:700;font-size:clamp(14px,3vmin,22px);text-shadow:0 2px 8px rgba(0,0,0,.28);opacity:0;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.75) rotate(var(--rot));animation:flight var(--dur) cubic-bezier(.25,.7,.3,1) var(--delay) both;box-shadow:0 8px 26px rgba(0,0,0,.22);will-change:transform,opacity;background:var(--bg)}
+@keyframes flight{0%{opacity:0;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.75) rotate(var(--rot))}18%{opacity:1}45%{transform:translate(-50%,-50%) translate(calc(var(--dx)*.2),calc(var(--dy)*.2)) scale(1.06)}70%{transform:translate(-50%,-50%) translate(calc(var(--dx)*1.15),calc(var(--dy)*1.15)) scale(.95) rotate(var(--rot))}88%{transform:translate(-50%,-50%) translate(calc(var(--heart-x)*.6),calc(var(--heart-y)*.6)) scale(.9) rotate(var(--heart-rot))}100%{opacity:1;transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1) rotate(var(--heart-rot))}}
+.msg::before,.msg::after{content:'';position:absolute;left:50%;top:0;background:inherit;width:24px;height:36px;opacity:0;transition:opacity .28s ease;border-radius:60px 60px 0 0;margin-left:-12px;z-index:1}
+.msg::before{transform-origin:0 100%;transform:rotate(-45deg)}.msg::after{transform-origin:100% 100%;transform:rotate(45deg)}
+.msg.heart-mode{color:transparent;text-shadow:none}.msg.heart-mode::before,.msg.heart-mode::after{opacity:1}
+.msg.locked{animation:none;transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1) rotate(var(--heart-rot));opacity:1}
+.msg.locked.pulse{animation:pulse 2.2s ease-in-out infinite}@keyframes pulse{0%,100%{transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1)}50%{transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1.08)}}
+.msg.paused{animation-play-state:paused!important}.msg.last-one.locked{z-index:10}.msg.last-one .text{position:relative;z-index:2}
+
+/* 修改中心标题样式，添加司佳怡 */
+.center-container {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  pointer-events: none;
+}
+
+.center-title{
+  font-weight:800;
+  letter-spacing:.12em;
+  font-size:clamp(18px,4vmin,28px);
+  opacity:.95;
+  animation:titleIn 1.2s ease .8s both;
+  margin-bottom: 5px;
+}
+
+.name-title {
+  font-weight: 800;
+  letter-spacing: .15em;
+  font-size: clamp(20px, 5vmin, 32px);
+  opacity: .95;
+  animation: titleIn 1.2s ease 1s both;
+  background: linear-gradient(45deg, #ff7eb3, #4facfe);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0 2px 10px rgba(255, 126, 179, 0.3);
+}
+
+@keyframes titleIn{from{opacity:0;transform:translateY(10px)}to{opacity:.95;transform:translateY(0)}}
+
+.control-group{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:12px}
+.control-group button{padding:10px 14px;border:none;border-radius:10px;backdrop-filter:blur(8px);color:#fff;font-weight:600;cursor:pointer;box-shadow:0 5px 20px rgba(0,0,0,.22);transition:transform .2s ease;background:var(--control-bg)}.control-group button:hover{transform:scale(1.05)}
+
+audio{display:none}.music-name{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:8px;backdrop-filter:blur(8px);font-size:clamp(12px,2vmin,15px);font-weight:500;box-shadow:0 3px 12px rgba(0,0,0,.15);z-index:100;transition:all .3s ease}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+  <div class="center-container">
+    <div class="center-title" id="title">♥ for you ♥</div>
+    <div class="name-title">司佳怡</div>
+  </div>
+</div>
+
+<!-- 只保留音乐控制和重新播放按钮 -->
+<div class="control-group">
+  <button class="replay" id="replay">重新播放</button>
+  <button class="music-control" id="musicControl">暂停音乐</button>
+</div>
+
+<div class="music-name" id="musicName">当前播放：《不将就》</div>
+
+<script>
+// 主题配置 - 只保留必要的部分
+const CURRENT_THEME = {
+  backgroundColor: "radial-gradient(1200px 600px at 50% 45%, rgba(255,255,255,.65), rgba(255,255,255,0) 60%),radial-gradient(circle at 50% 45%, #fff4f7 0%, #c9eaff 100%)",
+  musicSrc: "不将就 - 李荣浩.mp3",
+  musicName: "不将就",
+  gradients: [
+    ['#ff758c','#ff7eb3'], ['#a18cd1','#fbc2eb'],
+    ['#f6d365','#fda085'], ['#84fab0','#8fd3f4'],
+    ['#f093fb','#f5576c'], ['#4facfe','#00f2fe'],
+    ['#43e97b','#38f9d7'], ['#fa709a','#fee140'],
+    ['#30cfd0','#330867'], ['#5ee7df','#b490ca']
+  ],
+  tips: [
+    '想念在风里飘','月亮为你亮','喜欢你很久了','你是我的心动','温柔落在人间',
+    '星光都为你闪','梦里有你真好','世界因你柔软','心跳为你加速','有你真好'
+  ]
+};
+
+// 配置
+const C = {
+  TOTAL: 220,
+  MSG_DELAY: 0.11,
+  MSG_RAND: 0.35,
+  HEART: 16
+};
+
+// 只获取必要的DOM元素
+const [stage, replay, musicControl, musicName] = 
+  ['stage', 'replay', 'musicControl', 'musicName']
+  .map(id => document.getElementById(id));
+
+let [isPlaying, musicPlaying] = [true, false];
+let lastMsg = null;
+
+// 创建音乐元素
+const music = Object.assign(document.createElement('audio'), {
+  loop: true,
+  innerHTML: `<source src="${CURRENT_THEME.musicSrc}" type="audio/mpeg">`
+});
+document.body.appendChild(music);
+
+// 飞行方向
+const dirs = [
+  {dx: '0vw', dy: '-80vh'}, {dx: '0vw', dy: '80vh'},
+  {dx: '-80vw', dy: '0vh'}, {dx: '80vw', dy: '0vh'},
+  {dx: '-70vw', dy: '-70vh'}, {dx: '70vw', dy: '-70vh'},
+  {dx: '-70vw', dy: '70vh'}, {dx: '70vw', dy: '70vh'}
+];
+
+const rand = (min, max) => Math.random() * (max - min) + min;
+
+const randGrad = () => {
+  const g = CURRENT_THEME.gradients;
+  return `linear-gradient(135deg,${g[Math.floor(Math.random() * g.length)]})`;
+};
+
+const heart = (t) => ({
+  x: C.HEART * (16 * Math.sin(t) ** 3) + 'px',
+  y: -C.HEART * (13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t)) + 'px'
+});
+
+// 创建消息元素
+const createMsg = (i, t) => {
+  const e = document.createElement('div');
+  e.className = 'msg';
+  if (i === t - 1) {
+    e.classList.add('last-one');
+    lastMsg = e;
+  }
+  const d = dirs[Math.floor(Math.random() * dirs.length)];
+  Object.entries({
+    dx: d.dx, dy: d.dy, rot: rand(-55, 55) + 'deg',
+    dur: rand(6.8, 8.6) + 's', delay: (i * C.MSG_DELAY + rand(0, C.MSG_RAND)) + 's',
+    bg: randGrad()
+  }).forEach(([k, v]) => e.style.setProperty(`--${k}`, v));
+  
+  const h = heart(i / t * Math.PI * 2);
+  Object.entries({
+    x: h.x, y: h.y, rot: rand(-18, 18) + 'deg'
+  }).forEach(([k, v]) => e.style.setProperty(`--heart-${k}`, v));
+  
+  const s = document.createElement('span');
+  s.className = 'text';
+  s.textContent = CURRENT_THEME.tips[Math.floor(Math.random() * CURRENT_THEME.tips.length)];
+  e.appendChild(s);
+  
+  const timer = setTimeout(() => {
+    if (isPlaying && !e.classList.contains('last-one')) e.classList.add('heart-mode');
+  }, 1000 * (
+    parseFloat(e.style.getPropertyValue('--delay')) +
+    parseFloat(e.style.getPropertyValue('--dur')) * 0.86
+  ));
+  
+  e.addEventListener('animationend', () => {
+    clearTimeout(timer);
+    if (isPlaying) {
+      e.classList.add('locked', 'pulse');
+      if (!e.classList.contains('last-one')) e.classList.add('heart-mode');
+    }
+  }, {once: true});
+  
+  return e;
+};
+
+// 重新播放动画和音乐
+const replayAll = () => {
+  // 清除所有消息元素
+  stage.querySelectorAll('.msg').forEach(n => n.remove());
+  lastMsg = null;
+  
+  // 重新创建消息
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < C.TOTAL; i++) {
+    fragment.appendChild(createMsg(i, C.TOTAL));
+  }
+  stage.appendChild(fragment);
+  
+  // 重置音乐
+  if (musicPlaying) {
+    music.pause();
+    music.currentTime = 0;
+    music.play().catch(e => console.log("重新播放音乐:", e));
+  } else {
+    music.currentTime = 0;
+  }
+  
+  // 更新状态
+  isPlaying = true;
+  
+  console.log("重新播放动画和音乐");
+};
+
+// 更新音乐显示状态
+const updateMusic = () => {
+  musicName.textContent = `${musicPlaying ? '当前播放' : '已暂停'}：《${CURRENT_THEME.musicName}》`;
+  musicName.style.background = 'rgba(255, 255, 255, 0.2)';
+  musicName.style.color = '#4facfe';
+};
+
+// 切换音乐播放状态
+const toggleMusic = () => {
+  if (musicPlaying) {
+    music.pause();
+    musicControl.textContent = '播放音乐';
+  } else {
+    music.play().catch(e => console.log("音乐播放错误:", e));
+    musicControl.textContent = '暂停音乐';
+  }
+  musicPlaying = !musicPlaying;
+  updateMusic();
+};
+
+// 应用主题样式
+const applyTheme = () => {
+  // 应用背景样式
+  document.body.style.background = CURRENT_THEME.backgroundColor;
+  
+  // 创建消息
+  stage.querySelectorAll('.msg').forEach(n => n.remove());
+  
+  const fragment = document.createDocumentFragment();
+  for (let i = 0; i < C.TOTAL; i++) {
+    fragment.appendChild(createMsg(i, C.TOTAL));
+  }
+  stage.appendChild(fragment);
+};
+
+// 初始化函数
+const init = () => {
+  applyTheme();
+  
+  // 尝试自动播放音乐
+  musicPlaying = true;
+  musicControl.textContent = '暂停音乐';
+  
+  const playMusic = () => {
+    music.play().then(() => {
+      console.log("音乐播放成功");
+      musicPlaying = true;
+      updateMusic();
+    }).catch(e => {
+      console.log("自动播放被阻止，需要用户交互:", e);
+      musicPlaying = false;
+      musicControl.textContent = '播放音乐';
+      updateMusic();
+      
+      // 添加点击页面任意位置播放音乐的监听
+      const clickToPlay = () => {
+        music.play().then(() => {
+          musicPlaying = true;
+          musicControl.textContent = '暂停音乐';
+          updateMusic();
+          document.body.removeEventListener('click', clickToPlay);
+          document.body.removeEventListener('touchstart', clickToPlay);
+        }).catch(err => {
+          console.log("点击播放失败:", err);
+        });
+      };
+      
+      document.body.addEventListener('click', clickToPlay);
+      document.body.addEventListener('touchstart', clickToPlay);
+    });
+  };
+  
+  // 延迟播放音乐，确保页面加载完成
+  setTimeout(playMusic, 500);
+  
+  updateMusic();
+};
+
+// 绑定事件监听器
+replay.addEventListener('click', replayAll);
+musicControl.addEventListener('click', toggleMusic);
+
+// 页面加载完成后初始化
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
