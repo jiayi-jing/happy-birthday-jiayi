@@ -2,22 +2,195 @@
 <html lang="zh">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>秋天的第一件礼物</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>我佳小小怡礼物</title>
 <style>
-html,body{height:100%;margin:0;overflow:hidden;font-family:"华文楷体",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;transition:background 1.5s ease}
+/* 重置和基础样式 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
 
-.stage{position:relative;width:100%;height:100%}
-.msg{position:absolute;left:50%;top:50%;padding:10px 16px;border-radius:16px;color:#fff;font-weight:700;font-size:clamp(14px,3vmin,22px);text-shadow:0 2px 8px rgba(0,0,0,.28);opacity:0;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.75) rotate(var(--rot));animation:flight var(--dur) cubic-bezier(.25,.7,.3,1) var(--delay) both;box-shadow:0 8px 26px rgba(0,0,0,.22);will-change:transform,opacity;background:var(--bg)}
-@keyframes flight{0%{opacity:0;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.75) rotate(var(--rot))}18%{opacity:1}45%{transform:translate(-50%,-50%) translate(calc(var(--dx)*.2),calc(var(--dy)*.2)) scale(1.06)}70%{transform:translate(-50%,-50%) translate(calc(var(--dx)*1.15),calc(var(--dy)*1.15)) scale(.95) rotate(var(--rot))}88%{transform:translate(-50%,-50%) translate(calc(var(--heart-x)*.6),calc(var(--heart-y)*.6)) scale(.9) rotate(var(--heart-rot))}100%{opacity:1;transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1) rotate(var(--heart-rot))}}
-.msg::before,.msg::after{content:'';position:absolute;left:50%;top:0;background:inherit;width:24px;height:36px;opacity:0;transition:opacity .28s ease;border-radius:60px 60px 0 0;margin-left:-12px;z-index:1}
-.msg::before{transform-origin:0 100%;transform:rotate(-45deg)}.msg::after{transform-origin:100% 100%;transform:rotate(45deg)}
-.msg.heart-mode{color:transparent;text-shadow:none}.msg.heart-mode::before,.msg.heart-mode::after{opacity:1}
-.msg.locked{animation:none;transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1) rotate(var(--heart-rot));opacity:1}
-.msg.locked.pulse{animation:pulse 2.2s ease-in-out infinite}@keyframes pulse{0%,100%{transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1)}50%{transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1.08)}}
-.msg.paused{animation-play-state:paused!important}.msg.last-one.locked{z-index:10}.msg.last-one .text{position:relative;z-index:2}
+html,body{
+  height:100%;
+  margin:0;
+  overflow:hidden;
+  font-family:"华文楷体", system-ui, -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  transition:background 1.5s ease;
+  background: radial-gradient(1200px 600px at 50% 45%, rgba(255,255,255,.65), rgba(255,255,255,0) 60%),radial-gradient(circle at 50% 45%, #fff4f7 0%, #c9eaff 100%);
+}
 
-/* 修改中心标题样式，添加司佳怡 */
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  html, body {
+    touch-action: manipulation;
+    overflow: hidden;
+  }
+  
+  .control-group {
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 90%;
+    max-width: 320px;
+  }
+  
+  .control-group button {
+    flex: 1;
+    min-width: 45%;
+    padding: 12px 8px;
+    font-size: 14px;
+  }
+  
+  .music-name {
+    width: 90%;
+    font-size: 13px;
+    bottom: 110px;
+    padding: 8px 12px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .center-title {
+    font-size: clamp(16px, 5vw, 22px);
+  }
+  
+  .name-title {
+    font-size: clamp(18px, 6vw, 26px);
+  }
+  
+  .control-group {
+    gap: 8px;
+    padding: 0 10px;
+  }
+  
+  .control-group button {
+    padding: 10px 6px;
+    font-size: 13px;
+  }
+  
+  .music-name {
+    font-size: 12px;
+    bottom: 120px;
+    padding: 6px 10px;
+  }
+}
+
+/* 横屏适配 */
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  .center-container {
+    transform: translate(-50%, -50%) scale(0.9);
+  }
+  
+  .control-group {
+    bottom: 10px;
+  }
+  
+  .music-name {
+    bottom: 50px;
+  }
+}
+
+/* 舞台和消息样式 */
+.stage{
+  position:relative;
+  width:100%;
+  height:100%;
+  overflow: hidden;
+}
+
+.msg{
+  position:absolute;
+  left:50%;
+  top:50%;
+  padding:8px 14px;
+  border-radius:14px;
+  color:#fff;
+  font-weight:700;
+  font-size:clamp(12px, 3vw, 18px);
+  text-shadow:0 2px 8px rgba(0,0,0,.28);
+  opacity:0;
+  transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.75) rotate(var(--rot));
+  animation:flight var(--dur) cubic-bezier(.25,.7,.3,1) var(--delay) both;
+  box-shadow:0 8px 26px rgba(0,0,0,.22);
+  will-change:transform,opacity;
+  background:var(--bg);
+  z-index: 1;
+}
+
+@keyframes flight{
+  0%{opacity:0;transform:translate(-50%,-50%) translate(var(--dx),var(--dy)) scale(.75) rotate(var(--rot))}
+  18%{opacity:1}
+  45%{transform:translate(-50%,-50%) translate(calc(var(--dx)*.2),calc(var(--dy)*.2)) scale(1.06)}
+  70%{transform:translate(-50%,-50%) translate(calc(var(--dx)*1.15),calc(var(--dy)*1.15)) scale(.95) rotate(var(--rot))}
+  88%{transform:translate(-50%,-50%) translate(calc(var(--heart-x)*.6),calc(var(--heart-y)*.6)) scale(.9) rotate(var(--heart-rot))}
+  100%{opacity:1;transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1) rotate(var(--heart-rot))}
+}
+
+.msg::before,.msg::after{
+  content:'';
+  position:absolute;
+  left:50%;
+  top:0;
+  background:inherit;
+  width:20px;
+  height:30px;
+  opacity:0;
+  transition:opacity .28s ease;
+  border-radius:60px 60px 0 0;
+  margin-left:-10px;
+  z-index:1
+}
+
+.msg::before{
+  transform-origin:0 100%;
+  transform:rotate(-45deg)
+}
+
+.msg::after{
+  transform-origin:100% 100%;
+  transform:rotate(45deg)
+}
+
+.msg.heart-mode{
+  color:transparent;
+  text-shadow:none
+}
+
+.msg.heart-mode::before,.msg.heart-mode::after{
+  opacity:1
+}
+
+.msg.locked{
+  animation:none;
+  transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1) rotate(var(--heart-rot));
+  opacity:1
+}
+
+.msg.locked.pulse{
+  animation:pulse 2.2s ease-in-out infinite
+}
+
+@keyframes pulse{
+  0%,100%{transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1)}
+  50%{transform:translate(-50%,-50%) translate(var(--heart-x),var(--heart-y)) scale(1.08)}
+}
+
+.msg.paused{
+  animation-play-state:paused!important
+}
+
+.msg.last-one.locked{
+  z-index:10
+}
+
+.msg.last-one .text{
+  position:relative;
+  z-index:2
+}
+
+/* 中心标题样式 */
 .center-container {
   position: absolute;
   left: 50%;
@@ -25,36 +198,113 @@ html,body{height:100%;margin:0;overflow:hidden;font-family:"华文楷体",system
   transform: translate(-50%, -50%);
   text-align: center;
   pointer-events: none;
+  z-index: 10;
+  width: 90%;
+  max-width: 400px;
 }
 
 .center-title{
   font-weight:800;
   letter-spacing:.12em;
-  font-size:clamp(18px,4vmin,28px);
+  font-size:clamp(16px, 5vw, 24px);
   opacity:.95;
   animation:titleIn 1.2s ease .8s both;
-  margin-bottom: 5px;
+  margin-bottom: 8px;
+  color: rgba(255,105,180,.8);
+  text-shadow: 0 2px 10px rgba(255,105,180,.3);
 }
 
 .name-title {
   font-weight: 800;
   letter-spacing: .15em;
-  font-size: clamp(20px, 5vmin, 32px);
+  font-size: clamp(18px, 6vw, 28px);
   opacity: .95;
   animation: titleIn 1.2s ease 1s both;
   background: linear-gradient(45deg, #ff7eb3, #4facfe);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  text-shadow: 0 2px 10px rgba(255, 126, 179, 0.3);
+  text-shadow: 0 2px 15px rgba(255, 126, 179, 0.4);
+  padding: 0 10px;
 }
 
-@keyframes titleIn{from{opacity:0;transform:translateY(10px)}to{opacity:.95;transform:translateY(0)}}
+@keyframes titleIn{
+  from{opacity:0;transform:translateY(15px)}
+  to{opacity:.95;transform:translateY(0)}
+}
 
-.control-group{position:absolute;bottom:18px;left:50%;transform:translateX(-50%);display:flex;gap:12px}
-.control-group button{padding:10px 14px;border:none;border-radius:10px;backdrop-filter:blur(8px);color:#fff;font-weight:600;cursor:pointer;box-shadow:0 5px 20px rgba(0,0,0,.22);transition:transform .2s ease;background:var(--control-bg)}.control-group button:hover{transform:scale(1.05)}
+/* 控制组样式 */
+.control-group{
+  position:absolute;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  display:flex;
+  gap:12px;
+  z-index: 100;
+  width: 100%;
+  justify-content: center;
+  padding: 0 15px;
+}
 
-audio{display:none}.music-name{position:absolute;bottom:70px;left:50%;transform:translateX(-50%);padding:6px 14px;border-radius:8px;backdrop-filter:blur(8px);font-size:clamp(12px,2vmin,15px);font-weight:500;box-shadow:0 3px 12px rgba(0,0,0,.15);z-index:100;transition:all .3s ease}
+.control-group button{
+  padding:12px 18px;
+  border:none;
+  border-radius:12px;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color:#fff;
+  font-weight:600;
+  cursor:pointer;
+  box-shadow:0 5px 20px rgba(0,0,0,.25);
+  transition:all 0.2s ease;
+  background: linear-gradient(135deg, #ff758c, #ff7eb3);
+  font-size: 15px;
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.control-group button:hover, .control-group button:active{
+  transform:scale(1.05);
+  box-shadow:0 7px 25px rgba(0,0,0,.3);
+}
+
+/* 音乐信息样式 */
+audio{display:none}
+
+.music-name{
+  position:absolute;
+  bottom:90px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:8px 16px;
+  border-radius:12px;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size:clamp(13px, 3vw, 15px);
+  font-weight:500;
+  box-shadow:0 3px 15px rgba(0,0,0,.2);
+  z-index:100;
+  transition:all .3s ease;
+  background: rgba(255, 255, 255, 0.25);
+  color: #4facfe;
+  text-align: center;
+  width: auto;
+  white-space: nowrap;
+  max-width: 90%;
+}
+
+/* 防止iPhone刘海屏遮挡 */
+@supports (padding: max(0px)) {
+  .control-group, .music-name {
+    padding-left: max(15px, env(safe-area-inset-left));
+    padding-right: max(15px, env(safe-area-inset-right));
+  }
+  
+  .control-group {
+    bottom: max(20px, env(safe-area-inset-bottom));
+  }
+}
 </style>
 </head>
 <body>
@@ -76,7 +326,6 @@ audio{display:none}.music-name{position:absolute;bottom:70px;left:50%;transform:
 <script>
 // 主题配置 - 只保留必要的部分
 const CURRENT_THEME = {
-  backgroundColor: "radial-gradient(1200px 600px at 50% 45%, rgba(255,255,255,.65), rgba(255,255,255,0) 60%),radial-gradient(circle at 50% 45%, #fff4f7 0%, #c9eaff 100%)",
   musicSrc: "不将就 - 李荣浩.mp3",
   musicName: "不将就",
   gradients: [
@@ -92,12 +341,13 @@ const CURRENT_THEME = {
   ]
 };
 
-// 配置
+// 配置 - 根据设备调整数量
+const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 const C = {
-  TOTAL: 220,
+  TOTAL: isMobile ? 150 : 220, // 移动端减少消息数量
   MSG_DELAY: 0.11,
   MSG_RAND: 0.35,
-  HEART: 16
+  HEART: isMobile ? 12 : 16, // 移动端缩小心形轨迹
 };
 
 // 只获取必要的DOM元素
@@ -111,16 +361,20 @@ let lastMsg = null;
 // 创建音乐元素
 const music = Object.assign(document.createElement('audio'), {
   loop: true,
-  innerHTML: `<source src="${CURRENT_THEME.musicSrc}" type="audio/mpeg">`
+  innerHTML: `<source src="${CURRENT_THEME.musicSrc}" type="audio/mpeg">`,
+  preload: 'auto'
 });
 document.body.appendChild(music);
 
-// 飞行方向
+// 飞行方向 - 移动端调整距离
+const baseDistance = isMobile ? '60vw' : '80vw';
 const dirs = [
-  {dx: '0vw', dy: '-80vh'}, {dx: '0vw', dy: '80vh'},
-  {dx: '-80vw', dy: '0vh'}, {dx: '80vw', dy: '0vh'},
-  {dx: '-70vw', dy: '-70vh'}, {dx: '70vw', dy: '-70vh'},
-  {dx: '-70vw', dy: '70vh'}, {dx: '70vw', dy: '70vh'}
+  {dx: '0vw', dy: `-${baseDistance}`}, {dx: '0vw', dy: baseDistance},
+  {dx: `-${baseDistance}`, dy: '0vh'}, {dx: baseDistance, dy: '0vh'},
+  {dx: `-${isMobile ? '50vw' : '70vw'}`, dy: `-${isMobile ? '50vw' : '70vw'}`}, 
+  {dx: `${isMobile ? '50vw' : '70vw'}`, dy: `-${isMobile ? '50vw' : '70vw'}`},
+  {dx: `-${isMobile ? '50vw' : '70vw'}`, dy: `${isMobile ? '50vw' : '70vw'}`}, 
+  {dx: `${isMobile ? '50vw' : '70vw'}`, dy: `${isMobile ? '50vw' : '70vw'}`}
 ];
 
 const rand = (min, max) => Math.random() * (max - min) + min;
@@ -146,7 +400,8 @@ const createMsg = (i, t) => {
   const d = dirs[Math.floor(Math.random() * dirs.length)];
   Object.entries({
     dx: d.dx, dy: d.dy, rot: rand(-55, 55) + 'deg',
-    dur: rand(6.8, 8.6) + 's', delay: (i * C.MSG_DELAY + rand(0, C.MSG_RAND)) + 's',
+    dur: rand(isMobile ? 5.8 : 6.8, isMobile ? 7.6 : 8.6) + 's', // 移动端加快动画
+    delay: (i * C.MSG_DELAY + rand(0, C.MSG_RAND)) + 's',
     bg: randGrad()
   }).forEach(([k, v]) => e.style.setProperty(`--${k}`, v));
   
@@ -202,15 +457,11 @@ const replayAll = () => {
   
   // 更新状态
   isPlaying = true;
-  
-  console.log("重新播放动画和音乐");
 };
 
 // 更新音乐显示状态
 const updateMusic = () => {
   musicName.textContent = `${musicPlaying ? '当前播放' : '已暂停'}：《${CURRENT_THEME.musicName}》`;
-  musicName.style.background = 'rgba(255, 255, 255, 0.2)';
-  musicName.style.color = '#4facfe';
 };
 
 // 切换音乐播放状态
@@ -228,9 +479,6 @@ const toggleMusic = () => {
 
 // 应用主题样式
 const applyTheme = () => {
-  // 应用背景样式
-  document.body.style.background = CURRENT_THEME.backgroundColor;
-  
   // 创建消息
   stage.querySelectorAll('.msg').forEach(n => n.remove());
   
@@ -241,9 +489,31 @@ const applyTheme = () => {
   stage.appendChild(fragment);
 };
 
+// 检测设备类型和方向
+const checkDeviceAndOrientation = () => {
+  const isPortrait = window.innerHeight > window.innerWidth;
+  
+  // 如果是移动设备且竖屏，进一步优化
+  if (isMobile && isPortrait) {
+    // 可以添加更多移动端竖屏优化
+    console.log('移动设备竖屏模式');
+  }
+};
+
+// 防止双击缩放
+let lastTouchEnd = 0;
+document.addEventListener('touchend', function(event) {
+  const now = (new Date()).getTime();
+  if (now - lastTouchEnd <= 300) {
+    event.preventDefault();
+  }
+  lastTouchEnd = now;
+}, false);
+
 // 初始化函数
 const init = () => {
   applyTheme();
+  checkDeviceAndOrientation();
   
   // 尝试自动播放音乐
   musicPlaying = true;
@@ -279,17 +549,23 @@ const init = () => {
   };
   
   // 延迟播放音乐，确保页面加载完成
-  setTimeout(playMusic, 500);
+  setTimeout(playMusic, 800);
   
   updateMusic();
+  
+  // 监听窗口大小变化
+  window.addEventListener('resize', checkDeviceAndOrientation);
+  window.addEventListener('orientationchange', checkDeviceAndOrientation);
 };
 
 // 绑定事件监听器
 replay.addEventListener('click', replayAll);
+replay.addEventListener('touchend', replayAll);
 musicControl.addEventListener('click', toggleMusic);
+musicControl.addEventListener('touchend', toggleMusic);
 
 // 页面加载完成后初始化
-window.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
